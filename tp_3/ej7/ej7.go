@@ -74,19 +74,44 @@ func (lista *DLL) Print() {
 	//creamos un nodo observador auxiliar
 	aux := lista.head
 
+	fmt.Print("Orden de la lista(Head-Tail): ")
+
 	//si no estamos en el ultimo nodo
 	for i := 0; i < lista.length; i++ {
-		if aux != nil {
-			fmt.Println(aux.valor)
-			aux = aux.siguiente
-		} else {
-			return
-		}
+
+		fmt.Print(" ", aux.valor)
+		aux = aux.siguiente
 	}
+	fmt.Println()
+}
+
+// metodo que imprime de Tail a Head
+func (lista *DLL) ReversePrint() {
+	//creamos un nodo observador auxiliar
+	aux := lista.tail
+
+	fmt.Print("Orden inverso de la lista(Tails - Head): ")
+	//si no estamos en el ultimo nodo
+	for i := 0; i < lista.length; i++ {
+
+		fmt.Print(" ", aux.valor)
+		aux = aux.anterior
+
+	}
+	fmt.Println()
 }
 
 func main() {
 	p := &DLL{}
+	p.AddToHead(-1)
+	p.AddToHead(-2)
+	p.AddToHead(-3)
+	p.AddToHead(-6)
+
+	fmt.Println("Head:", p.head.valor)
+	fmt.Println("Tail:", p.tail.valor)
+	fmt.Println("Size:", p.length)
+
 	p.AddToTail(1)
 	p.AddToTail(2)
 	p.AddToTail(3)
@@ -95,13 +120,6 @@ func main() {
 	fmt.Println("Head:", p.head.valor)
 	fmt.Println("Tail:", p.tail.valor)
 	fmt.Println("Size:", p.length)
-
-	p.AddToHead(-1)
-	p.AddToHead(-2)
-	p.AddToHead(-3)
-	p.AddToHead(-6)
-	fmt.Println("Head:", p.head.valor)
-	fmt.Println("Tail:", p.tail.valor)
-	fmt.Println("Size:", p.length)
 	p.Print()
+	p.ReversePrint()
 }
