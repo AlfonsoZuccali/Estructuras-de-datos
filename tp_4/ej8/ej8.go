@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 //Nodo
 type Nodo struct {
 	izquierda *Nodo
@@ -162,25 +160,54 @@ func (arbol *ABB) eliminar(input int) {
 		}
 	}
 
+	//caso 3, el nodo tiene dos hijos
+	if observador.derecha != nil && observador.izquierda != nil {
+
+		//puntero que apunta al nodo que sera el reemplazo
+		var aux *Nodo
+		var auxPadre *Nodo
+
+		//nos situamos en el subarbol derecho del que va a ser eliminado
+		auxPadre = observador
+		aux = observador.derecha
+
+		//encontramos el menor del subarbol derecho
+		for aux.izquierda != nil {
+			auxPadre = aux
+			aux = aux.izquierda
+		}
+
+		//acomodamos el valor del nodo
+		observador.valor = aux.valor
+
+		//eliminamos el nodo
+		if auxPadre.izquierda == aux {
+			auxPadre.izquierda = aux.derecha
+		} else {
+			auxPadre.derecha = aux.derecha
+		}
+
+		if observador == arbol.raiz {
+			aux = arbol.raiz
+		}
+	}
+
 }
 
 func main() {
 	arbol := ABB{raiz: nil}
+	arbol.insertar(50)
+	arbol.insertar(48)
+	arbol.insertar(17)
+	arbol.insertar(68)
+	arbol.insertar(99)
+	arbol.insertar(75)
 	arbol.insertar(5)
-	arbol.insertar(10)
-	arbol.insertar(8)
-	arbol.insertar(3)
-	arbol.insertar(12)
-	arbol.insertar(0)
+	arbol.insertar(51)
+	arbol.insertar(76)
 
-	fmt.Println("EL valor 2 esta en el arbol: ", arbol.buscar(2))
-	fmt.Println("EL valor 0 esta en el arbol: ", arbol.buscar(0))
-	fmt.Println("EL valor 12 esta en el arbol: ", arbol.buscar(12))
-	fmt.Println("EL valor 3 esta en el arbol: ", arbol.buscar(3))
-	fmt.Println("EL valor 5 esta en el arbol: ", arbol.buscar(5))
-	fmt.Println("EL valor 1 esta en el arbol: ", arbol.buscar(1))
-
-	arbol.eliminar(3)
-	arbol.eliminar(12)
-	arbol.eliminar(10)
+	arbol.eliminar(68)
+	arbol.eliminar(75)
+	arbol.eliminar(17)
+	arbol.eliminar(5)
 }
