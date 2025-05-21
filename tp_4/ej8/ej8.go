@@ -15,10 +15,7 @@ type ABB struct {
 }
 
 func (arbol *ABB) EsVacio() bool {
-	if arbol.raiz == nil {
-		return true
-	}
-	return false
+	return arbol.raiz == nil
 }
 
 func (arbol *ABB) insertar(input int) {
@@ -32,7 +29,7 @@ func (arbol *ABB) insertar(input int) {
 	padre := (*Nodo)(nil)
 
 	//si el arbol esta vacio
-	if arbol.EsVacio() == true {
+	if arbol.EsVacio() {
 		arbol.raiz = nuevoNodo
 		//si no esta vacio
 	} else {
@@ -83,11 +80,88 @@ func (arbol *ABB) buscar(input int) bool {
 			}
 		}
 	}
+
+	//devuelve true o false en caso de encontrar o no el valor
 	if observador.valor == input {
 		return true
 	} else {
 		return false
 	}
+}
+
+func (arbol *ABB) eliminar(input int) {
+
+	if arbol.EsVacio() {
+		return
+	}
+	observador := arbol.raiz
+	padre := (*Nodo)(nil)
+
+	/*
+		tres casos posibles
+		1. sin hijos
+		2. con un hijo
+		3. con dos hijos
+	*/
+
+	//se frena el for loop cuando el valor es encontrado o se llega a un nil
+	for observador != nil && observador.valor != input {
+		padre = observador
+		if observador.valor < input {
+			observador = observador.derecha
+		} else {
+			observador = observador.izquierda
+		}
+	}
+
+	// si el valor no existe
+	if observador == nil {
+		return
+	}
+
+	//caso 1, el nodo es una hoja
+	if observador.derecha == nil && observador.izquierda == nil {
+		// si el nodo a eliminar es la raiz
+		if arbol.raiz.valor == input {
+			arbol.raiz = nil
+			return
+		}
+		//chequeamos si el nodo a eliminar es el izquierdo o el derecho y luego lo eliminamos
+		if padre.izquierda == observador {
+			padre.izquierda = nil
+			return
+		}
+		if padre.derecha == observador {
+			padre.derecha = nil
+			return
+		}
+	}
+
+	//caso 2, el nodo tiene un hijo
+	//es verdadero solo si uno es nil y el otro no, es decir, solo tiene un hijo.
+	if (observador.derecha == nil) != (observador.izquierda == nil) {
+		var hijo *Nodo
+
+		//verificamos cual es el nodo a conectar con el padre del eliminado
+		// y lo llamamos hijo
+		if observador.derecha != nil {
+			hijo = observador.derecha
+		}
+		if observador.izquierda != nil {
+			hijo = observador.izquierda
+		}
+
+		// si el valor a eliminar es la raiz, se elimina,
+		// si no se chequea si es el hijo izquierdo o derecho
+		if observador == arbol.raiz {
+			arbol.raiz = hijo
+		} else if padre.derecha == observador {
+			padre.derecha = hijo
+		} else if padre.izquierda == observador {
+			padre.izquierda = hijo
+		}
+	}
+
 }
 
 func main() {
@@ -105,4 +179,8 @@ func main() {
 	fmt.Println("EL valor 3 esta en el arbol: ", arbol.buscar(3))
 	fmt.Println("EL valor 5 esta en el arbol: ", arbol.buscar(5))
 	fmt.Println("EL valor 1 esta en el arbol: ", arbol.buscar(1))
+
+	arbol.eliminar(3)
+	arbol.eliminar(12)
+	arbol.eliminar(10)
 }
