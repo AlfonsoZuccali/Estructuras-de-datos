@@ -59,28 +59,28 @@ func (arbol *ABB) insertar(input int) {
 func (arbol *ABB) buscar(input int) bool {
 
 	//creamos el nodo auxiliar
-	observador := arbol.raiz
+	objetivo := arbol.raiz
 
 	//si el arbol esta vacio return false
 	if arbol.EsVacio() {
 		return false
 	} else {
 		//se frena el for loop cuando el valor es encontrado o se llega a una hoja
-		for observador.valor != input && (observador.izquierda != nil || observador.derecha != nil) {
+		for objetivo.valor != input && (objetivo.izquierda != nil || objetivo.derecha != nil) {
 
 			//si el valor del nodo es mayor al input vamos hacia la izquierda
-			if observador.valor > input && observador.izquierda != nil {
-				observador = observador.izquierda
+			if objetivo.valor > input && objetivo.izquierda != nil {
+				objetivo = objetivo.izquierda
 
 				// si el valor del nodo es menor al input vamos hacia la derecha
-			} else if observador.valor < input && observador.derecha != nil {
-				observador = observador.derecha
+			} else if objetivo.valor < input && objetivo.derecha != nil {
+				objetivo = objetivo.derecha
 			}
 		}
 	}
 
 	//devuelve true o false en caso de encontrar o no el valor
-	if observador.valor == input {
+	if objetivo.valor == input {
 		return true
 	} else {
 		return false
@@ -92,8 +92,25 @@ func (arbol *ABB) eliminar(input int) {
 	if arbol.EsVacio() {
 		return
 	}
-	observador := arbol.raiz
+
+	objetivo := arbol.raiz
 	padre := (*Nodo)(nil)
+
+	//se frena el for loop cuando el valor es encontrado
+	//o se llega a un nil
+	for objetivo != nil && objetivo.valor != input {
+		padre = objetivo
+		if objetivo.valor < input {
+			objetivo = objetivo.derecha
+		} else {
+			objetivo = objetivo.izquierda
+		}
+	}
+
+	// si el valor no existe
+	if objetivo == nil {
+		return
+	}
 
 	/*
 		tres casos posibles
@@ -102,34 +119,19 @@ func (arbol *ABB) eliminar(input int) {
 		3. con dos hijos
 	*/
 
-	//se frena el for loop cuando el valor es encontrado o se llega a un nil
-	for observador != nil && observador.valor != input {
-		padre = observador
-		if observador.valor < input {
-			observador = observador.derecha
-		} else {
-			observador = observador.izquierda
-		}
-	}
-
-	// si el valor no existe
-	if observador == nil {
-		return
-	}
-
 	//caso 1, el nodo es una hoja
-	if observador.derecha == nil && observador.izquierda == nil {
+	if objetivo.derecha == nil && objetivo.izquierda == nil {
 		// si el nodo a eliminar es la raiz
 		if arbol.raiz.valor == input {
 			arbol.raiz = nil
 			return
 		}
 		//chequeamos si el nodo a eliminar es el izquierdo o el derecho y luego lo eliminamos
-		if padre.izquierda == observador {
+		if padre.izquierda == objetivo {
 			padre.izquierda = nil
 			return
 		}
-		if padre.derecha == observador {
+		if padre.derecha == objetivo {
 			padre.derecha = nil
 			return
 		}
@@ -137,39 +139,39 @@ func (arbol *ABB) eliminar(input int) {
 
 	//caso 2, el nodo tiene un hijo
 	//es verdadero solo si uno es nil y el otro no, es decir, solo tiene un hijo.
-	if (observador.derecha == nil) != (observador.izquierda == nil) {
+	if (objetivo.derecha == nil) != (objetivo.izquierda == nil) {
 		var hijo *Nodo
 
 		//verificamos cual es el nodo a conectar con el padre del eliminado
 		// y lo llamamos hijo
-		if observador.derecha != nil {
-			hijo = observador.derecha
+		if objetivo.derecha != nil {
+			hijo = objetivo.derecha
 		}
-		if observador.izquierda != nil {
-			hijo = observador.izquierda
+		if objetivo.izquierda != nil {
+			hijo = objetivo.izquierda
 		}
 
 		// si el valor a eliminar es la raiz, se elimina,
 		// si no se chequea si es el hijo izquierdo o derecho
-		if observador == arbol.raiz {
+		if objetivo == arbol.raiz {
 			arbol.raiz = hijo
-		} else if padre.derecha == observador {
+		} else if padre.derecha == objetivo {
 			padre.derecha = hijo
-		} else if padre.izquierda == observador {
+		} else if padre.izquierda == objetivo {
 			padre.izquierda = hijo
 		}
 	}
 
 	//caso 3, el nodo tiene dos hijos
-	if observador.derecha != nil && observador.izquierda != nil {
+	if objetivo.derecha != nil && objetivo.izquierda != nil {
 
 		//puntero que apunta al nodo que sera el reemplazo
 		var aux *Nodo
 		var auxPadre *Nodo
 
 		//nos situamos en el subarbol derecho del que va a ser eliminado
-		auxPadre = observador
-		aux = observador.derecha
+		auxPadre = objetivo
+		aux = objetivo.derecha
 
 		//encontramos el menor del subarbol derecho
 		for aux.izquierda != nil {
@@ -178,9 +180,9 @@ func (arbol *ABB) eliminar(input int) {
 		}
 
 		//acomodamos el valor del nodo
-		observador.valor = aux.valor
+		objetivo.valor = aux.valor
 
-		if observador == arbol.raiz {
+		if objetivo == arbol.raiz {
 			aux = arbol.raiz
 		}
 
