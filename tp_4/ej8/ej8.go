@@ -180,18 +180,19 @@ func (arbol *ABB) eliminar(input int) {
 		//acomodamos el valor del nodo
 		observador.valor = aux.valor
 
+		if observador == arbol.raiz {
+			aux = arbol.raiz
+		}
+
 		//eliminamos el nodo
+		//aca verificamos si el auxiliar es sucesor
+		// derecho directo del nodo a eliminar
 		if auxPadre.izquierda == aux {
 			auxPadre.izquierda = aux.derecha
 		} else {
 			auxPadre.derecha = aux.derecha
 		}
-
-		if observador == arbol.raiz {
-			aux = arbol.raiz
-		}
 	}
-
 }
 
 func main() {
@@ -206,8 +207,11 @@ func main() {
 	arbol.insertar(51)
 	arbol.insertar(76)
 
+	arbol.buscar(5)
+
 	arbol.eliminar(68)
 	arbol.eliminar(75)
 	arbol.eliminar(17)
 	arbol.eliminar(5)
+	arbol.eliminar(50)
 }
