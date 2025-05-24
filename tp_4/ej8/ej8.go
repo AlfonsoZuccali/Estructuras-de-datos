@@ -5,6 +5,7 @@ type Nodo struct {
 	izquierda *Nodo
 	valor     int
 	derecha   *Nodo
+	altura    int
 }
 
 //arbol binario de busqueda
@@ -12,50 +13,130 @@ type ABB struct {
 	raiz *Nodo
 }
 
+//funcion que devuelve el mayor de dos valores
+func maximo(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+//definicion de altura de un nodo
+func altura(nodo *Nodo) int {
+	if nodo == nil {
+		return 0
+	}
+	return nodo.altura
+}
+
+//verifica si un arbol esta vacio
 func (arbol *ABB) EsVacio() bool {
 	return arbol.raiz == nil
 }
 
-func (arbol *ABB) insertar(input int) {
-	//creamos el nuevo nodo con el valor de input
-	nuevoNodo := &Nodo{valor: input, izquierda: nil, derecha: nil}
+//metodo que devuelve el nodo con el menor valor del arbol
+func menor_nodo(nodo *Nodo) *Nodo {
+	if nodo == nil {
+		return nil
+	} else if nodo.izquierda == nil {
+		return nodo
+	}
+	return menor_nodo(nodo.izquierda)
+}
 
-	//creamos el nodo auxiliar
-	auxNodo := arbol.raiz
-
-	//creamos un nodo padre
-	padre := (*Nodo)(nil)
-
-	//si el arbol esta vacio
-	if arbol.EsVacio() {
-		arbol.raiz = nuevoNodo
-		//si no esta vacio
+//funcion que actualiza la altura despues de eliminar o agregar nodos al arbol
+func actualizarAltura(nodo *Nodo) {
+	if nodo == nil {
+		return
 	} else {
-
-		//recorremos el arbol
-		for auxNodo != nil {
-			padre = auxNodo
-			if auxNodo.valor > input {
-				auxNodo = auxNodo.izquierda
-			} else {
-				auxNodo = auxNodo.derecha
-			}
-		}
-		//al final de este bloque auxNodo va a ser el nodo con el valor nil
-		//mientras que el padre sera el antecesor al cual deberemos reemplazarle
-		//los valores de derecha o izquierda con nuestro nuevoNodo
-
-		//cambiamos los valores del padre para que apunte al nuevoNodo
-		if padre.valor > input {
-			padre.izquierda = nuevoNodo
-		} else {
-			padre.derecha = nuevoNodo
-		}
-
+		//la altura se actualiza a la suma de la altura del nodo actual mas la altura mas grande de sus hijos
+		nodo.altura = 1 + (maximo(altura(nodo.izquierda), altura(nodo.derecha)))
+		return
 	}
 }
 
-//funcion para buscar un elemento en el ABB
+//saca el factor de balanceo del nodo dado
+func factor_balanceo(nodo *Nodo) int {
+	return altura(nodo.izquierda) - altura(nodo.derecha)
+}
+
+//funcion de rotacion derecha
+func rotacion_derecha(a *Nodo) *Nodo {
+	//establecemos el subarbol de referencia
+	b := a.izquierda
+	c := b.derecha
+	//cambiamos de lugar los nodos
+	b.derecha = a
+	a.izquierda = c
+
+	//actualizamos la altura solo a y b ya que c se mantiene a la misma altura
+	actualizarAltura(a)
+	actualizarAltura(b)
+	return b
+}
+
+//funcion de rotacion izquierda
+func rotacion_izquierda(a *Nodo) *Nodo {
+	//establecemos el subarbol de referencia
+	b := a.derecha
+	c := b.izquierda
+	//cambiamos de lugar los nodos
+	b.izquierda = a
+	a.derecha = c
+
+	//actualizamos la altura solo a y b ya que c se mantiene a la misma altura
+	actualizarAltura(a)
+	actualizarAltura(b)
+	return b
+}
+
+//funcion de balanceo que devuelve la nueva raiz
+func balancear(a *Nodo) *Nodo {
+	actualizarAltura(a)
+
+	//desbalanceo a la derecha
+	if factor_balanceo(a) < -1 {
+		if a.derecha != nil && factor_balanceo(a.derecha) > 0 {
+			a.derecha = rotacion_izquierda(a.derecha)
+		}
+		a = rotacion_izquierda(a)
+
+		//desbalanceo a la izquierda
+	} else if factor_balanceo(a) > 1 {
+		if a.izquierda != nil && factor_balanceo(a.izquierda) < 0 {
+			a.izquierda = rotacion_derecha(a.izquierda)
+		}
+		a = rotacion_derecha(a)
+	}
+
+	return a
+}
+
+func insertar_recursiva(nodo *Nodo, valor int) *Nodo {
+	//caso base
+	if nodo == nil {
+		return &Nodo{valor: valor, altura: 1}
+	}
+	// si el valor insertado es menor al del nodo del arbol
+	if valor < nodo.valor {
+		nodo.izquierda = insertar_recursiva(nodo.izquierda, valor)
+	}
+
+	//si el valor insertado es mayor al del nodo del arbol
+	if valor > nodo.valor {
+		nodo.derecha = insertar_recursiva(nodo.derecha, valor)
+	}
+
+	return balancear(nodo)
+}
+
+//metodo para insertar valores en un arbol
+func (arbol *ABB) insertar(input int) {
+	//llamada al insertar recursivamente
+	arbol.raiz = insertar_recursiva(arbol.raiz, input)
+}
+
+//metodo para buscar un elemento en el ABB
 func (arbol *ABB) buscar(input int) bool {
 
 	//creamos el nodo auxiliar
@@ -87,117 +168,50 @@ func (arbol *ABB) buscar(input int) bool {
 	}
 }
 
+func eliminar_recursiva(nodo *Nodo, valor int) *Nodo {
+	//caso base
+	if nodo == nil {
+		return nil
+	}
+
+	//busqueda recursiva del objetivo
+	if valor < nodo.valor {
+		nodo.izquierda = eliminar_recursiva(nodo.izquierda, valor)
+	} else if valor > nodo.valor {
+		nodo.derecha = eliminar_recursiva(nodo.derecha, valor)
+
+		// si no es mayor ni menor, es igual, por ende encontramos el nodo a eliminar
+	} else {
+		//Caso sin hijos
+		if nodo.derecha == nil && nodo.izquierda == nil {
+			return nil
+
+			//Caso con un hijo
+		} else if (nodo.izquierda == nil) != (nodo.derecha == nil) {
+			if nodo.izquierda == nil {
+				return nodo.derecha
+			} else {
+				return nodo.izquierda
+			}
+
+			//caso con dos hijos
+		} else if nodo.izquierda != nil && nodo.derecha != nil {
+			aux := menor_nodo(nodo.derecha)
+			nodo.valor = aux.valor
+			nodo.derecha = eliminar_recursiva(nodo.derecha, aux.valor)
+		}
+	}
+	return balancear(nodo)
+}
+
+//metodo que elimina valores en un arbol
 func (arbol *ABB) eliminar(input int) {
-
-	if arbol.EsVacio() {
-		return
-	}
-
-	objetivo := arbol.raiz
-	padre := (*Nodo)(nil)
-
-	//se frena el for loop cuando el valor es encontrado
-	//o se llega a un nil
-	for objetivo != nil && objetivo.valor != input {
-		padre = objetivo
-		if objetivo.valor < input {
-			objetivo = objetivo.derecha
-		} else {
-			objetivo = objetivo.izquierda
-		}
-	}
-
-	// si el valor no existe
-	if objetivo == nil {
-		return
-	}
-
-	/*
-		tres casos posibles
-		1. sin hijos
-		2. con un hijo
-		3. con dos hijos
-	*/
-
-	//caso 1, el nodo es una hoja
-	if objetivo.derecha == nil && objetivo.izquierda == nil {
-		// si el nodo a eliminar es la raiz
-		if arbol.raiz.valor == input {
-			arbol.raiz = nil
-			return
-		}
-		//chequeamos si el nodo a eliminar es el izquierdo o el derecho y luego lo eliminamos
-		if padre.izquierda == objetivo {
-			padre.izquierda = nil
-			return
-		}
-		if padre.derecha == objetivo {
-			padre.derecha = nil
-			return
-		}
-	}
-
-	//caso 2, el nodo tiene un hijo
-	//es verdadero solo si uno es nil y el otro no, es decir, solo tiene un hijo.
-	if (objetivo.derecha == nil) != (objetivo.izquierda == nil) {
-		var hijo *Nodo
-
-		//verificamos cual es el nodo a conectar con el padre del eliminado
-		// y lo llamamos hijo
-		if objetivo.derecha != nil {
-			hijo = objetivo.derecha
-		}
-		if objetivo.izquierda != nil {
-			hijo = objetivo.izquierda
-		}
-
-		// si el valor a eliminar es la raiz, se elimina,
-		// si no se chequea si es el hijo izquierdo o derecho
-		if objetivo == arbol.raiz {
-			arbol.raiz = hijo
-		} else if padre.derecha == objetivo {
-			padre.derecha = hijo
-		} else if padre.izquierda == objetivo {
-			padre.izquierda = hijo
-		}
-	}
-
-	//caso 3, el nodo tiene dos hijos
-	if objetivo.derecha != nil && objetivo.izquierda != nil {
-
-		//puntero que apunta al nodo que sera el reemplazo
-		var aux *Nodo
-		var auxPadre *Nodo
-
-		//nos situamos en el subarbol derecho del que va a ser eliminado
-		auxPadre = objetivo
-		aux = objetivo.derecha
-
-		//encontramos el menor del subarbol derecho
-		for aux.izquierda != nil {
-			auxPadre = aux
-			aux = aux.izquierda
-		}
-
-		//acomodamos el valor del nodo
-		objetivo.valor = aux.valor
-
-		if objetivo == arbol.raiz {
-			aux = arbol.raiz
-		}
-
-		//eliminamos el nodo
-		//aca verificamos si el auxiliar es sucesor
-		// derecho directo del nodo a eliminar
-		if auxPadre.izquierda == aux {
-			auxPadre.izquierda = aux.derecha
-		} else {
-			auxPadre.derecha = aux.derecha
-		}
-	}
+	arbol.raiz = eliminar_recursiva(arbol.raiz, input)
 }
 
 func main() {
+
+	//test de funciones
 	arbol := ABB{raiz: nil}
 	arbol.insertar(50)
 	arbol.insertar(48)
